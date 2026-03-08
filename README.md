@@ -1,84 +1,47 @@
 <img width="1536" height="1024" alt="ChatGPT Image Mar 8, 2026, 05_26_46 PM" src="https://github.com/user-attachments/assets/4735dda0-2b39-402a-9f0a-e4899490c8a0" />
 
-Here is a **more professional GitHub README** with **badges, architecture, sections, and developer style**. You can copy it directly as `README.md`.
 
----
-
-```markdown
+````markdown
 # Telegram → Zammad Ticket Bot
 
-![Node.js](https://img.shields.io/badge/Node.js-18+-green)
-![Telegram Bot](https://img.shields.io/badge/Telegram-Bot-blue)
-![Zammad](https://img.shields.io/badge/Zammad-API-red)
-![License](https://img.shields.io/badge/License-MIT-yellow)
-![Status](https://img.shields.io/badge/Status-Experimental-orange)
-
-A simple **Telegram Bot integration with Zammad** that allows users to create **support tickets directly from Telegram**.
-
-Users send a message to the bot and a **ticket is automatically created in Zammad** using the **Zammad REST API**.
-
-This project demonstrates **automation of support workflows** and integration between **chat platforms and helpdesk systems**.
+A simple Telegram bot that creates support tickets in **Zammad**.  
+Users can send their problem through Telegram, and the bot forwards it to Zammad using the **Zammad API**.
 
 ---
 
-# Architecture
+## Overview
 
-```
+This project connects:
 
-Telegram User
-│
-▼
-Telegram Bot (grammY)
-│
-▼
-Node.js Backend
-│
-▼
-Zammad REST API
-│
-▼
-Zammad Ticket System
+- **Telegram Bot**
+- **Node.js**
+- **grammY**
+- **Zammad API**
 
-```
+Flow:
+
+1. User opens the Telegram bot
+2. User sends `/start`
+3. User sends `/support`
+4. User writes the problem
+5. Bot sends the message to **Zammad**
+6. A new ticket is created automatically
 
 ---
 
-# Features
+## Features
 
-- Telegram bot commands
-- Automatic ticket creation in Zammad
-- Uses **Zammad REST API**
-- Stores credentials securely using `.env`
-- Works with **local or remote Zammad instances**
-- Includes **Telegram user information inside tickets**
-
----
-
-# Commands
-
-| Command | Description |
-|------|-------------|
-| `/start` | Start the bot |
-| `/support` | Create a support request |
-| message | Creates a ticket |
-
-Example:
-
-```
-
-/support
-My VPN is not working
-
-```
-
-This will create a **new ticket in Zammad**.
+- `/start` command
+- `/support` command
+- Creates a ticket in Zammad
+- Uses `.env` file for secure tokens
+- Easy local testing with a local Zammad instance
 
 ---
 
-# Project Structure
+## Project Structure
 
-```
-
+```text
 zammadtelegram/
 │
 ├── src/
@@ -87,185 +50,261 @@ zammadtelegram/
 ├── .env
 ├── package.json
 └── README.md
-
 ````
 
 ---
 
-# Requirements
+## Requirements
 
-Before running the project, make sure you have:
+Before starting, make sure you have:
 
-- **Node.js 18+**
-- **Telegram Bot Token**
-- **Zammad Instance**
-- **Zammad API Token**
-
----
-
-# Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/yourusername/zammadtelegram.git
-````
-
-Enter the project folder:
-
-```bash
-cd zammadtelegram
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Dependencies used:
-
-* **grammy** → Telegram bot framework
-* **axios** → HTTP client for API requests
-* **dotenv** → Environment variables
+* **Node.js** installed
+* A **Telegram bot token** from **@BotFather**
+* A running **Zammad instance**
+* A **Zammad API token**
 
 ---
 
-# Environment Variables (.env)
+## Installation
 
-Create a `.env` file in the root directory.
+Clone or create the project folder, then install the packages:
 
-Example:
-
+```bash
+npm init -y
+npm install grammy axios dotenv
 ```
-TELEGRAM_TOKEN=your_telegram_bot_token
+
+---
+
+## What should be inside the `.env` file?
+
+Create a file named:
+
+```text
+.env
+```
+
+Put this inside:
+
+```env
+TELEGRAM_TOKEN=your_telegram_bot_token_here
 ZAMMAD_URL=http://localhost:8080
-ZAMMAD_TOKEN=your_zammad_api_token
+ZAMMAD_TOKEN=your_zammad_api_token_here
 ```
 
-### TELEGRAM_TOKEN
+### Explanation
 
-Token received from **BotFather**
+* `TELEGRAM_TOKEN`
+  The token you get from **BotFather**
+
+* `ZAMMAD_URL`
+  The URL of your Zammad instance
+  Example for local setup:
+
+  ```env
+  ZAMMAD_URL=http://localhost:8080
+  ```
+
+* `ZAMMAD_TOKEN`
+  The API token created inside Zammad
+
+---
+
+## How to create the Zammad API token
+
+In Zammad:
+
+1. Open your Zammad instance in the browser
+2. Click your **profile/avatar**
+3. Go to **Profile**
+4. Open **Token Access**
+5. Create a new token
+6. Copy the token into the `.env` file
 
 Example:
 
-```
-1234567890:AAExampleTelegramBotToken
-```
-
----
-
-### ZAMMAD_URL
-
-URL of your Zammad instance.
-
-Example for local installation:
-
-```
-http://localhost:8080
+```env
+ZAMMAD_TOKEN=abc123yourtokenhere
 ```
 
 ---
 
-### ZAMMAD_TOKEN
+## How to create the Telegram bot token
 
-Create this token in Zammad:
+In Telegram:
 
-1. Open Zammad
-2. Click **Profile**
-3. Go to **Token Access**
-4. Create a new API token
-5. Copy it to `.env`
+1. Search for **@BotFather**
+2. Run:
+
+```text
+/newbot
+```
+
+3. Follow the steps
+4. Copy the bot token
+5. Paste it into the `.env` file
 
 Example:
 
-```
-abc123examplezammadtoken
+```env
+TELEGRAM_TOKEN=1234567890:AAExampleTokenHere
 ```
 
 ---
 
-# Running the Bot
+## Bot Code Example
 
-Start the bot:
+Create the file:
 
+```text
+src/bot.js
 ```
+
+Put this code inside:
+
+```javascript
+import { Bot } from "grammy";
+import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const bot = new Bot(process.env.TELEGRAM_TOKEN);
+
+bot.command("start", async (ctx) => {
+  await ctx.reply("Welcome! Use /support to create a support ticket.");
+});
+
+bot.command("support", async (ctx) => {
+  await ctx.reply("Please describe your problem.");
+});
+
+bot.on("message:text", async (ctx) => {
+  const text = ctx.message.text;
+
+  if (text.startsWith("/")) return;
+
+  const telegramName = ctx.from?.first_name || "Unknown";
+  const telegramUsername = ctx.from?.username || "No username";
+  const telegramId = ctx.from?.id || "Unknown";
+
+  try {
+    await axios.post(
+      `${process.env.ZAMMAD_URL}/api/v1/tickets`,
+      {
+        title: "Telegram Support Request",
+        group: "1st Level Support",
+        customer: "telegram@support.local",
+        article: {
+          subject: "Telegram Ticket",
+          body: `
+Telegram Name: ${telegramName}
+Telegram Username: @${telegramUsername}
+Telegram ID: ${telegramId}
+
+Problem:
+${text}
+          `,
+          type: "note",
+          internal: false
+        }
+      },
+      {
+        headers: {
+          Authorization: `Token token=${process.env.ZAMMAD_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    await ctx.reply("✅ Your support ticket was created successfully.");
+  } catch (error) {
+    console.error("Error creating Zammad ticket:", error.response?.data || error.message);
+    await ctx.reply("❌ Failed to create the ticket in Zammad.");
+  }
+});
+
+bot.start();
+console.log("Telegram bot is running...");
+```
+
+---
+
+## Run the bot
+
+Start the bot with:
+
+```bash
 node src/bot.js
 ```
 
-If everything is correct you should see:
-
-```
-Telegram bot is running...
-```
+If everything is correct, the bot will start and wait for messages.
 
 ---
 
-# Testing the Bot
+## How to test
 
-Open Telegram and send:
+Open your Telegram bot and send:
 
-```
+```text
 /start
 ```
 
 Then:
 
-```
+```text
 /support
 ```
 
-Then send a problem:
+Then send a real issue, for example:
 
-```
+```text
 My VPN is not working
 ```
 
-A new **ticket will appear in Zammad**.
+If the connection is correct, a new ticket will be created in Zammad.
 
 ---
 
-# Example Ticket Content
+## Example Ticket Content in Zammad
 
-When a user sends a message, the ticket will contain:
+The ticket can include information like:
 
-```
-Telegram Name: John
-Telegram Username: @johnexample
+* Telegram Name
+* Telegram Username
+* Telegram ID
+* User problem text
+
+Example body:
+
+```text
+Telegram Name: Mahtab
+Telegram Username: @exampleuser
 Telegram ID: 123456789
 
 Problem:
 My VPN is not working
 ```
 
-This allows support agents to identify the user.
-
 ---
 
-# Common Errors
+## Common Errors
 
-### 401 Unauthorized
+### 1. `401 Unauthorized`
 
-Usually caused by:
+This usually means the **Telegram bot token** or **Zammad token** is wrong.
 
-* wrong Telegram token
-* wrong Zammad API token
+Check your `.env` file carefully.
 
-Check your `.env` file.
-
----
-
-### Cannot find package 'grammy'
+### 2. `Cannot find package 'grammy'`
 
 Install dependencies:
 
-```
+```bash
 npm install grammy axios dotenv
 ```
 
----
-
-### Cannot use import statement outside a module
+### 3. `Cannot use import statement outside a module`
 
 Add this to `package.json`:
 
@@ -279,43 +318,32 @@ Example:
 {
   "name": "zammadtelegram",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "main": "index.js"
 }
 ```
 
 ---
 
-# Future Improvements
+## Future Improvements
 
-Possible improvements:
+Possible next steps:
 
-* Ticket priority selection
-* Category selection
-* `/mytickets` command
-* Ticket status notifications
-* Reply to tickets from Telegram
-* Map Telegram users to Zammad customers
-* Webhook deployment
-
----
-
-# Use Case
-
-This project is useful for:
-
-* IT Support teams
-* DevOps environments
-* Helpdesk automation
-* Telegram community support
+* Add ticket priority selection
+* Add category selection
+* Add `/mytickets`
+* Show ticket status in Telegram
+* Send support replies back to Telegram
+* Map each Telegram user to a real Zammad customer
 
 ---
 
-# Technologies Used
+## Why this project is useful
 
-* **Node.js**
-* **grammY**
-* **Telegram Bot API**
-* **Zammad REST API**
-* **Axios**
-* **dotenv**
+This project is a good portfolio example because it shows:
 
+* API integration
+* Telegram bot development
+* Node.js backend work
+* IT support workflow automation
+* Real ticket system usage with Zammad
