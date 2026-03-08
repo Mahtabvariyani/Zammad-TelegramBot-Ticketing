@@ -160,73 +160,8 @@ Create the file:
 src/bot.js
 ```
 
-Put this code inside:
+Put The code in the bot.js in The Project 
 
-```javascript
-import { Bot } from "grammy";
-import axios from "axios";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const bot = new Bot(process.env.TELEGRAM_TOKEN);
-
-bot.command("start", async (ctx) => {
-  await ctx.reply("Welcome! Use /support to create a support ticket.");
-});
-
-bot.command("support", async (ctx) => {
-  await ctx.reply("Please describe your problem.");
-});
-
-bot.on("message:text", async (ctx) => {
-  const text = ctx.message.text;
-
-  if (text.startsWith("/")) return;
-
-  const telegramName = ctx.from?.first_name || "Unknown";
-  const telegramUsername = ctx.from?.username || "No username";
-  const telegramId = ctx.from?.id || "Unknown";
-
-  try {
-    await axios.post(
-      `${process.env.ZAMMAD_URL}/api/v1/tickets`,
-      {
-        title: "Telegram Support Request",
-        group: "1st Level Support",
-        customer: "telegram@support.local",
-        article: {
-          subject: "Telegram Ticket",
-          body: `
-Telegram Name: ${telegramName}
-Telegram Username: @${telegramUsername}
-Telegram ID: ${telegramId}
-
-Problem:
-${text}
-          `,
-          type: "note",
-          internal: false
-        }
-      },
-      {
-        headers: {
-          Authorization: `Token token=${process.env.ZAMMAD_TOKEN}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    await ctx.reply("✅ Your support ticket was created successfully.");
-  } catch (error) {
-    console.error("Error creating Zammad ticket:", error.response?.data || error.message);
-    await ctx.reply("❌ Failed to create the ticket in Zammad.");
-  }
-});
-
-bot.start();
-console.log("Telegram bot is running...");
-```
 
 ---
 
